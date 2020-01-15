@@ -1,2 +1,1 @@
-const fs = require('fs');
-const path = require('path');
+import program from 'commander';

@@ -1,10 +1,13 @@
 {
-  "name": "commandar",
+  "name": "buddhism",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "bin/npmrc.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node bin/index.js"
+  },
+  "bin":{
+    "buddhism":"bin/index.js"
   },
   "keywords": [],
   "author": "",
@@ -27,5 +30,9 @@
     "ora": "^4.0.3",
     "rimraf": "^3.0.0",
     "user-home": "^2.0.0"
+  },
+  "engines": {
+    "node": "10.0.0",
+    "npm": "5.6.0"
   }
 }
