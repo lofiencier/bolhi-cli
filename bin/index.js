@@ -8,12 +8,21 @@ const Metalsmith = require('metalsmith');
 const path = require('path');
 const inquirer = require('inquirer');
 const home = require('user-home');
+const download = require('download-git-repo');
 
-const exists = require('fs').existsSync;
 
+const rm = require('rimraf').sync
+const fs = require('fs');
 
-const tempPath = path.join(home, '.commandar');
+// 先检查是否存在
+// 如不存在则生成
+// 如果是offline
+// 检查是否有目标模板
+
+const templatePath = path.join(home, '.bolhi');
+
 const projectPath = (name = 'my-project') => path.resolve(name);
+
 
 program.version(packageConfig.version).usage('<command> [options]');
 
@@ -27,32 +36,47 @@ program.command('init [project-name]')
   .description('create a project')
   .action(function(name,options){
     console.log(chalk.blue('> Init started '));
-    generator(tempPath);
+    init(options);
   })
 
+const init = ({offline}) => {
+  if(offline) {
 
-
-const generator = (projectPath) => {
-  const metalsmith = Metalsmith(tempPath);
+  } else {
+    gitDownload('direct:http://git.wanshifu.com/user-web/tracker.git#user', templatePath, true, () => {
+      generator();
+    })
+  }
+}
+const generator = () => {
+  const metalsmith = Metalsmith(templatePath);
   metalsmith.use(ask(OPTIONS.prompts))
-    .use(cosoleInputs())
+    .use(logger('config : '))
+    .use(filter())
     .source('.')
-    .destination(projectPath)
-    .build((err, files) => {
-      if(err) console.log(err);
+    .destination(projectPath())
+    .build(err => {
+      if(err) console.log('err',err)
     })
 }
-const cosoleInputs = () => {
-  return (files, metalsmith, done)=>{
-    const data = metalsmith.metadata();
-    console.log('data',data);
-    done();
+
+const logger = (name) => {
+  return (files, metal, next) => {
+    let data = metal.metadata();
+    try {
+      data = JSON.stringify(metal.metadata());
+    } catch {
+      data = data;
+    }
+    console.log(name , data);
+    next();
   }
 }
 
+
 const ask = (prompts) => {
   return (files, metalsmith, done) => {
-    async.eachSeries(Object.keys(prompts), (key,next)=> {
+    async.eachSeries(Object.keys(prompts), (key, next)=> {
       prompt(metalsmith.metadata(), key, prompts[key], next);
     }, done);
   }
@@ -68,7 +92,7 @@ const prompt = (data, key, prompt, done) => {
     choices: prompt.choices || [],
     validate: prompt.validate || (() => true)
   }).then(answers => {
-    console.log('answers',answers);
+    // console.log('answers',answers);
     if(Array.isArray(answers[key])) {
       data[key] = {};
       answers[key].forEach(multiChoiceAnswer => {
@@ -83,5 +107,23 @@ const prompt = (data, key, prompt, done) => {
   }).catch(done)
 }
 
+const gitDownload = (repo, path, clone, cb) => {
+  // download(repository, destination, options, callback)
+  const spinner = ora(chalk.blue('downloading...'));
+  spinner.start();
+  if(fs.existsSync(path)) rm(`${path}`);
+  download(`${repo}`, path, { clone }, err => {
+    spinner.stop();
+    const msg = err ? `Template download error ! \n ${err.message}` : 'Template download success !'
+    const color = err ? 'red' : 'green';
+    console.log(chalk[color](msg));
+    cb && cb();
+  })
+}
 
+const filter = () => {
+  return (files, metal, next) => {
+    console.log('files',files);
+  }
+}
 program.parse(process.argv);
