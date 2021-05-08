@@ -24,7 +24,7 @@
     "download-git-repo": "^3.0.2",
     "fs-extra": "^8.1.0",
     "git-clone": "^0.1.0",
-    "handlebars": "^4.7.2",
+    "handlebars": "^4.7.7",
     "inquirer": "^7.0.3",
     "metalsmith": "^2.3.0",
     "minimatch": "^3.0.4",
